@@ -37,7 +37,8 @@ class Smashing_Updater {
       if( is_array( $response ) ) { // If it is an array
         $response = current( $response ); // Get the first item
       }
-      if( $this->authorize_token ) { // Is there an access token?
+      if( $this->authorize_token && is_array( $response ) ) { // Is there an access token?
+        // Warning: Illegal string offset 'zipball_url'
         $response['zipball_url'] = add_query_arg( 'access_token', $this->authorize_token, $response['zipball_url'] ); // Update our zip url with token
       }
       $this->github_response = $response; // Set it to our property
