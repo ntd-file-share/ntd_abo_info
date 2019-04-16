@@ -60,14 +60,18 @@ function display_abo_info() {
 	echo contact_SOAP("get_abo_info");
 }
 
+
 // add custom css to dashboard
 function dashboard_widget_display_enqueues( $hook ) {
 	if( current_user_can('administrator')) {
 		if( 'index.php' != $hook ) {
 			return;
 		}
-		wp_enqueue_style( 'ntd_widget_style', plugins_url('/includes/ntd_widget_style.css',  __FILE__  ));
-		wp_enqueue_script('ntd_abo_info_handler', plugins_url('/includes/ntd_abo_info_handler.js',  __FILE__  ));
+
+		// wp_enqueue_style( 'ntd_widget_style', plugins_url('/includes/ntd_widget_style.css',  __FILE__  ));
+		// wp_enqueue_script('ntd_abo_info_handler', plugins_url('/includes/ntd_abo_info_handler.js',  __FILE__  ));
+		wp_enqueue_style( 'ntd_widget_style', 'http://ntd-testumgebung.ch/ntd_abo_info/ntd_service_abo/includes/ntd_widget_style.css' );
+		wp_enqueue_script('ntd_abo_info_handler', 'http://ntd-testumgebung.ch/ntd_abo_info/ntd_service_abo/includes/ntd_abo_info_handler.js');
 	}
 }
 add_action( 'admin_enqueue_scripts', 'dashboard_widget_display_enqueues' );
