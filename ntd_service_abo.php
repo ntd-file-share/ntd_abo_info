@@ -3,7 +3,7 @@
 Plugin Name: ntd Service Abo
 Description: Wir halten Sie auf dem Laufenden: Welches Service Abo habe ich? Bis wann muss die Rechung beglichen werden?
 Author: New Time Design
-Version: 2.0.0
+Version: 1.0.0
 Author URI: https://www.new-time.ch/
 */
 
@@ -14,7 +14,7 @@ function github_plugin_updater_test_init() {
 	if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
 		$config = array(
 			'slug' => plugin_basename( __FILE__ ),
-			'proper_folder_name' => 'github-updater',
+			'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
 			'api_url' => 'https://api.github.com/repos/ntd-file-share/ntd_abo_info',
 			'raw_url' => 'https://raw.github.com/ntd-file-share/ntd_abo_info/master',
 			'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
