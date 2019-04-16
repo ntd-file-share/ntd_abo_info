@@ -3,7 +3,7 @@
 Plugin Name: ntd Service Abo
 Description: Wir halten Sie auf dem Laufenden: Welches Service Abo habe ich? Bis wann muss die Rechung beglichen werden?
 Author: New Time Design
-Version: 1.0.0
+Version: 2.0.0
 Author URI: https://www.new-time.ch/
 */
 
