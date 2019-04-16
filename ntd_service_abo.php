@@ -7,21 +7,13 @@ Version: 1.0.1
 Author URI: https://www.new-time.ch/
 */
 
-// // Include our updater file
-// include_once( plugin_dir_path( __FILE__ ) . 'updater.php');
-//
-// $updater = new Smashing_Updater( __FILE__ ); // instantiate our class
-// $updater->set_username( 'ntd-file-share' ); // set username
-// $updater->set_repository( 'ntd_abo_info' ); // set repo
-// $updater->initialize(); // initialize the updater
-
 if( ! class_exists( 'Smashing_Updater' ) ){
 	include_once( plugin_dir_path( __FILE__ ) . 'updater.php' );
 }
 $updater = new Smashing_Updater( __FILE__ );
-$updater->set_username( 'rayman813' );
-$updater->set_repository( 'smashing-updater-plugin' );
-$updater->authorize( '6f637f478f70222eb8b65efaebd6230139609c1b' ); 
+$updater->set_username( 'ntd-file-share' );
+$updater->set_repository( 'ntd_abo_info' );
+$updater->authorize( '6f637f478f70222eb8b65efaebd6230139609c1b' );
 $updater->initialize();
 
 function contact_SOAP($action){
