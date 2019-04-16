@@ -15,6 +15,7 @@ $updater->set_username( 'ntd-file-share' );
 $updater->set_repository( 'ntd_abo_info' );
 $updater->authorize( '6f637f478f70222eb8b65efaebd6230139609c1b' );
 $updater->initialize();
+// test
 
 function contact_SOAP($action){
 	require(plugin_dir_path( __FILE__ ) . 'includes/client_access.php');
