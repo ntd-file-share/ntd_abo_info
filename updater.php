@@ -34,12 +34,13 @@ class Smashing_Updater {
         $request_uri = add_query_arg( 'access_token', $this->authorize_token, $request_uri ); // Append it
       }
       $response = json_decode( wp_remote_retrieve_body( wp_remote_get( $request_uri ) ), true ); // Get JSON and parse it
-      if( is_array( $response ) ) { // If it is an array
-        $response = current( $response ); // Get the first item
-      }
+
       if( $this->authorize_token && is_array( $response ) ) { // Is there an access token?
         // Warning: Illegal string offset 'zipball_url'
         $response['zipball_url'] = add_query_arg( 'access_token', $this->authorize_token, $response['zipball_url'] ); // Update our zip url with token
+      }
+      if( is_array( $response ) ) { // If it is an array
+        $response = current( $response ); // Get the first item
       }
       $this->github_response = $response; // Set it to our property
     }
@@ -53,6 +54,7 @@ class Smashing_Updater {
     if( property_exists( $transient, 'checked') ) { // Check if transient has a checked property
       if( $checked = $transient->checked ) { // Did Wordpress check for updates?
         $this->get_repository_info(); // Get the repo info
+        // Warning: Illegal string offset 'tag_name' in C:\xampp\htdocs\test_julia\wp-content\plugins\ntd_service_abo\updater.php on line 56
         $out_of_date = version_compare( $this->github_response['tag_name'], $checked[ $this->basename ], 'gt' ); // Check if we're out of date
         if( $out_of_date ) {
           $new_files = $this->github_response['zipball_url']; // Get the ZIP
