@@ -7,14 +7,6 @@ Version: 2.0.0
 Author URI: https://www.new-time.ch/
 */
 
-if( ! class_exists( 'Smashing_Updater' ) ){
-	include_once( plugin_dir_path( __FILE__ ) . 'updater.php' );
-}
-$updater = new Smashing_Updater( __FILE__ );
-$updater->set_username( 'ntd-file-share' );
-$updater->set_repository( 'ntd_abo_info' );
-$updater->authorize( '6f637f478f70222eb8b65efaebd6230139609c1b' );
-$updater->initialize();
 
 function contact_SOAP($action){
 	require(plugin_dir_path( __FILE__ ) . 'includes/client_access.php');
