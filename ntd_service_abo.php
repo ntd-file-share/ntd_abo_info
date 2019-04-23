@@ -11,7 +11,8 @@ register_activation_hook(__FILE__,'myplugin_activation');
 register_deactivation_hook(__FILE__,'myplugin_deactivation');
 /* This function is executed when the user activates the plugin */
 function myplugin_activation(){
-	wp_schedule_event(strtotime("09:20:00"), 'daily', 'my_hook');
+	// wp_schedule_event(time(), 'daily', 'my_hook');
+	wp_schedule_event(time(), "daily", 'my_hook');
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
