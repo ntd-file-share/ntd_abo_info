@@ -11,7 +11,7 @@ register_activation_hook(__FILE__,'myplugin_activation');
 register_deactivation_hook(__FILE__,'myplugin_deactivation');
 /* This function is executed when the user activates the plugin */
 function myplugin_activation(){
-	wp_schedule_event("06:00:00", 'daily', 'my_hook');
+	wp_schedule_event(strtotime("09:20:00"), 'daily', 'my_hook');
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
@@ -137,6 +137,7 @@ function display_abo_info() {
 	</g>
 	</svg>
 	</div>';
+
 	echo "<p>Hier behalten Sie Ihr ntd Service Abo im Überblick. </p>";
 	echo contact_SOAP("get_abo_info");
 	echo "<div id='ntd_address'>".$address.$logo."</div>";
