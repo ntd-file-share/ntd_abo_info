@@ -3,12 +3,29 @@
 Plugin Name: ntd Service Abo
 Description: Wir halten Sie auf dem Laufenden: Welches Service Abo habe ich? Bis wann muss die Rechung beglichen werden?
 Author: New Time Design
-Version: 3.0.0
+Version: 4.0.0
 Author URI: https://www.new-time.ch/
 */
+register_activation_hook(__FILE__,'myplugin_activation');
+/* The deactivation hook is executed when the plugin is deactivated */
+register_deactivation_hook(__FILE__,'myplugin_deactivation');
+/* This function is executed when the user activates the plugin */
+function myplugin_activation(){
+	wp_schedule_event("06:00:00", 'daily', 'my_hook');
+}
+/* This function is executed when the user deactivates the plugin */
+function myplugin_deactivation(){
+	wp_clear_scheduled_hook('my_hook');
+}
+/* We add a function of our own to the my_hook action.*/
+add_action('my_hook','perform_update_check');
+/* This is the function that is executed by the hourly recurring action my_hook */
+function perform_update_check(){
+	contact_SOAP("register_update_check");
+}
 
-add_action( 'init', 'github_plugin_updater_test_init' );
-function github_plugin_updater_test_init() {
+add_action( 'my_hook', 'github_plugin_updater_init' );
+function github_plugin_updater_init() {
 	include_once 'updater.php';
 	define( 'WP_GITHUB_FORCE_UPDATE', true );
 	if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
@@ -62,6 +79,8 @@ function contact_SOAP($action){
 		return $soap->get_abo_info($domain, $key);
 	} elseif ($action=="check_abo_status") {
 		return $soap->check_abo_status($domain, $key, $wp_update, $plugin_update);
+	} elseif ($action == "register_update_check") {
+		$soap->register_update_check($domain, $wp_update, $plugin_update);
 	}
 }
 
