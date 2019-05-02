@@ -11,21 +11,21 @@ register_activation_hook(__FILE__,'myplugin_activation');
 register_deactivation_hook(__FILE__,'myplugin_deactivation');
 /* This function is executed when the user activates the plugin */
 function myplugin_activation(){
-	// wp_schedule_event(time(), 'daily', 'my_hook');
-	wp_schedule_event(time(), "daily", 'my_hook');
+	// wp_schedule_event(time(), 'daily', 'daily_check_for_github_updates');
+	wp_schedule_event(time(), "daily", 'daily_check_for_github_updates');
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
-	wp_clear_scheduled_hook('my_hook');
+	wp_clear_scheduled_hook('daily_check_for_github_updates');
 }
-/* We add a function of our own to the my_hook action.*/
-add_action('my_hook','perform_update_check');
-/* This is the function that is executed by the hourly recurring action my_hook */
+/* We add a function of our own to the daily_check_for_github_updates action.*/
+add_action('daily_check_for_github_updates','perform_update_check');
+/* This is the function that is executed by the hourly recurring action daily_check_for_github_updates */
 function perform_update_check(){
 	contact_SOAP("register_update_check");
 }
 
-add_action( 'my_hook', 'github_plugin_updater_init' );
+add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
 function github_plugin_updater_init() {
 	include_once 'updater.php';
 	define( 'WP_GITHUB_FORCE_UPDATE', true );
