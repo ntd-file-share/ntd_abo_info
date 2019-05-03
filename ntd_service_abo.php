@@ -68,19 +68,19 @@ function contact_SOAP($action){
 		'soap_version' => SOAP_1_2
 	));
 
-	// available updates:
-	$update_data = wp_get_update_data();
-	$wp_update = $update_data['counts']['wordpress'];
-	$plugin_update = $update_data['counts']['plugins'];
-
 	/**
 	* Richtiger Soapservice aufrufen.
 	*/
 	if ($action=="get_abo_info") {
 		return $soap->get_abo_info($domain, $key);
 	} elseif ($action=="check_abo_status") {
-		return $soap->check_abo_status($domain, $key, $wp_update, $plugin_update);
+		return $soap->check_abo_status($domain, $key);
 	} elseif ($action == "register_update_check") {
+		// available updates:
+		$update_data = wp_get_update_data();
+		$wp_update = $update_data['counts']['wordpress'];
+		$plugin_update = $update_data['counts']['plugins'];
+		
 		$soap->register_update_check($domain, $wp_update, $plugin_update);
 	}
 }
