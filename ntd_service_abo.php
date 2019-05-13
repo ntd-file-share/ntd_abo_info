@@ -5,6 +5,7 @@ Description: Wir halten Sie auf dem Laufenden: Welches Service Abo habe ich? Bis
 Author: New Time Design
 Version: 4.0.0
 Author URI: https://www.new-time.ch/
+GitHub Plugin URI: ntd-file-share/ntd_abo_info
 */
 register_activation_hook(__FILE__,'myplugin_activation');
 /* The deactivation hook is executed when the plugin is deactivated */
@@ -33,29 +34,29 @@ function perform_update_check(){
 	// update_option('letzter_check', date('Y-m-d'));
 }
 
-add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
-// add_action('init', 'github_plugin_updater_init');
-function github_plugin_updater_init() {
-
-	include_once 'updater.php';
-	define( 'WP_GITHUB_FORCE_UPDATE', true );
-	// if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
-	$config = array(
-		'slug' => plugin_basename( __FILE__ ),
-		'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
-		'api_url' => 'https://api.github.com/repos/ntd-file-share/ntd_abo_info',
-		'raw_url' => 'https://raw.github.com/ntd-file-share/ntd_abo_info/master',
-		'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
-		'zip_url' => 'https://github.com/ntd-file-share/ntd_abo_info/archive/master.zip',
-		'sslverify' => true,
-		'requires' => '5.0',
-		'tested' => '5.0',
-		'readme' => '/includes/README.txt',
-		'access_token' => ''
-	);
-	new WP_GitHub_Updater( $config );
-	// }
-}
+// add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
+// // add_action('init', 'github_plugin_updater_init');
+// function github_plugin_updater_init() {
+//
+// 	include_once 'updater.php';
+// 	define( 'WP_GITHUB_FORCE_UPDATE', true );
+// 	// if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
+// 	$config = array(
+// 		'slug' => plugin_basename( __FILE__ ),
+// 		'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
+// 		'api_url' => 'https://api.github.com/repos/ntd-file-share/ntd_abo_info',
+// 		'raw_url' => 'https://raw.github.com/ntd-file-share/ntd_abo_info/master',
+// 		'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
+// 		'zip_url' => 'https://github.com/ntd-file-share/ntd_abo_info/archive/master.zip',
+// 		'sslverify' => true,
+// 		'requires' => '5.0',
+// 		'tested' => '5.0',
+// 		'readme' => '/includes/README.txt',
+// 		'access_token' => ''
+// 	);
+// 	new WP_GitHub_Updater( $config );
+// 	// }
+// }
 function get_core_updates_intern( $options = array() ) {
 	$options   = array_merge(
 		array(
