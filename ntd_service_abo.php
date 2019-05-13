@@ -12,18 +12,18 @@ register_activation_hook(__FILE__,'myplugin_activation');
 register_deactivation_hook(__FILE__,'myplugin_deactivation');
 /* This function is executed when the user activates the plugin */
 function myplugin_activation(){
-	// wp_schedule_event(time(), 'daily', 'daily_check_for_github_updates');
-	wp_schedule_event(strtotime('06:00:00'), 'daily', 'daily_check_for_github_updates');
+	// wp_schedule_event(time(), 'daily', 'daily_update_information');
+	wp_schedule_event(strtotime('06:00:00'), 'daily', 'daily_update_information');
 	// perform_update_check();
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
-	wp_clear_scheduled_hook('daily_check_for_github_updates');
+	wp_clear_scheduled_hook('daily_update_information');
 }
-/* We add a function of our own to the daily_check_for_github_updates action.*/
-add_action('daily_check_for_github_updates','perform_update_check');
+/* We add a function of our own to the daily_update_information action.*/
+add_action('daily_update_information','perform_update_check');
 // add_action('init','perform_update_check');
-/* This is the function that is executed by the hourly recurring action daily_check_for_github_updates */
+/* This is the function that is executed by the hourly recurring action daily_update_information */
 function perform_update_check(){
 	contact_SOAP("register_update_check");
 
@@ -34,29 +34,7 @@ function perform_update_check(){
 	// update_option('letzter_check', date('Y-m-d'));
 }
 
-// add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
-// // add_action('init', 'github_plugin_updater_init');
-// function github_plugin_updater_init() {
-//
-// 	include_once 'updater.php';
-// 	define( 'WP_GITHUB_FORCE_UPDATE', true );
-// 	// if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
-// 	$config = array(
-// 		'slug' => plugin_basename( __FILE__ ),
-// 		'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
-// 		'api_url' => 'https://api.github.com/repos/ntd-file-share/ntd_abo_info',
-// 		'raw_url' => 'https://raw.github.com/ntd-file-share/ntd_abo_info/master',
-// 		'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
-// 		'zip_url' => 'https://github.com/ntd-file-share/ntd_abo_info/archive/master.zip',
-// 		'sslverify' => true,
-// 		'requires' => '5.0',
-// 		'tested' => '5.0',
-// 		'readme' => '/includes/README.txt',
-// 		'access_token' => ''
-// 	);
-// 	new WP_GitHub_Updater( $config );
-// 	// }
-// }
+
 function get_core_updates_intern( $options = array() ) {
 	$options   = array_merge(
 		array(
