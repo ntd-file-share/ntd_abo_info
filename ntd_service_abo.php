@@ -12,7 +12,7 @@ register_deactivation_hook(__FILE__,'myplugin_deactivation');
 /* This function is executed when the user activates the plugin */
 function myplugin_activation(){
 	// wp_schedule_event(time(), 'daily', 'daily_check_for_github_updates');
-	wp_schedule_event(time(), "daily", 'daily_check_for_github_updates');
+	wp_schedule_event(strtotime('06:00:00'), 'daily', 'daily_check_for_github_updates');
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
@@ -80,7 +80,7 @@ function contact_SOAP($action){
 		$update_data = wp_get_update_data();
 		$wp_update = $update_data['counts']['wordpress'];
 		$plugin_update = $update_data['counts']['plugins'];
-		
+
 		$soap->register_update_check($domain, $wp_update, $plugin_update);
 	}
 }
