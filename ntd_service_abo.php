@@ -19,14 +19,21 @@ function myplugin_deactivation(){
 	wp_clear_scheduled_hook('daily_check_for_github_updates');
 }
 /* We add a function of our own to the daily_check_for_github_updates action.*/
-add_action('daily_check_for_github_updates','perform_update_check');
+// add_action('daily_check_for_github_updates','perform_update_check');
+add_action('init','perform_update_check');
 /* This is the function that is executed by the hourly recurring action daily_check_for_github_updates */
 function perform_update_check(){
 	contact_SOAP("register_update_check");
+
+	// // check for available updates:
+	// $update_data = wp_get_update_data();
+	// update_option('wp_update', $update_data['counts']['wordpress']);
+	// update_option('plugin_update', $update_data['counts']['plugins']);
 }
 
 add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
 function github_plugin_updater_init() {
+
 	include_once 'updater.php';
 	define( 'WP_GITHUB_FORCE_UPDATE', true );
 	if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
@@ -45,6 +52,8 @@ function github_plugin_updater_init() {
 		);
 		new WP_GitHub_Updater( $config );
 	}
+	// // Aktuelle Updates übermitteln
+	// contact_SOAP("register_update_check");
 }
 
 function contact_SOAP($action){
@@ -80,7 +89,8 @@ function contact_SOAP($action){
 		$update_data = wp_get_update_data();
 		$wp_update = $update_data['counts']['wordpress'];
 		$plugin_update = $update_data['counts']['plugins'];
-
+		// $wp_update = get_option("wp_update");
+		// $plugin_update = get_option("plugin_update");
 		$soap->register_update_check($domain, $wp_update, $plugin_update);
 	}
 }
@@ -138,7 +148,12 @@ function display_abo_info() {
 	</g>
 	</svg>
 	</div>';
-
+	// $update_data = wp_get_update_data();
+	// $wp_update = $update_data['counts']['wordpress'];
+	// $plugin_update = $update_data['counts']['plugins'];
+	// echo $wp_update."<br>".$plugin_update;
+	// echo 	contact_SOAP("register_update_check");
+	// echo get_option("wp_update");
 	echo "<p>Hier behalten Sie Ihr ntd Service Abo im Überblick. </p>";
 	echo contact_SOAP("get_abo_info");
 	echo "<div id='ntd_address'>".$address.$logo."</div>";
