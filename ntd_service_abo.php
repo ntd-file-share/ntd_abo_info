@@ -20,8 +20,8 @@ function myplugin_deactivation(){
 	wp_clear_scheduled_hook('daily_check_for_github_updates');
 }
 /* We add a function of our own to the daily_check_for_github_updates action.*/
-// add_action('daily_check_for_github_updates','perform_update_check');
-add_action('init','perform_update_check');
+add_action('daily_check_for_github_updates','perform_update_check');
+// add_action('init','perform_update_check');
 /* This is the function that is executed by the hourly recurring action daily_check_for_github_updates */
 function perform_update_check(){
 	contact_SOAP("register_update_check");
@@ -33,8 +33,8 @@ function perform_update_check(){
 	// update_option('letzter_check', date('Y-m-d'));
 }
 
-// add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
-add_action('init', 'github_plugin_updater_init');
+add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
+// add_action('init', 'github_plugin_updater_init');
 function github_plugin_updater_init() {
 
 	include_once 'updater.php';
@@ -48,15 +48,13 @@ function github_plugin_updater_init() {
 		'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
 		'zip_url' => 'https://github.com/ntd-file-share/ntd_abo_info/archive/master.zip',
 		'sslverify' => true,
-		'requires' => '3.0',
-		'tested' => '3.3',
+		'requires' => '5.0',
+		'tested' => '5.0',
 		'readme' => '/includes/README.txt',
-		'access_token' => '',
+		'access_token' => ''
 	);
 	new WP_GitHub_Updater( $config );
 	// }
-	// // Aktuelle Updates übermitteln
-	// contact_SOAP("register_update_check");
 }
 function get_core_updates_intern( $options = array() ) {
 	$options   = array_merge(
