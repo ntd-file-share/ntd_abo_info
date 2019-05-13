@@ -13,7 +13,7 @@ register_deactivation_hook(__FILE__,'myplugin_deactivation');
 function myplugin_activation(){
 	// wp_schedule_event(time(), 'daily', 'daily_check_for_github_updates');
 	wp_schedule_event(strtotime('06:00:00'), 'daily', 'daily_check_for_github_updates');
-	perform_update_check();
+	// perform_update_check();
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
@@ -39,26 +39,66 @@ function github_plugin_updater_init() {
 
 	include_once 'updater.php';
 	define( 'WP_GITHUB_FORCE_UPDATE', true );
-	if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
-		$config = array(
-			'slug' => plugin_basename( __FILE__ ),
-			'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
-			'api_url' => 'https://api.github.com/repos/ntd-file-share/ntd_abo_info',
-			'raw_url' => 'https://raw.github.com/ntd-file-share/ntd_abo_info/master',
-			'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
-			'zip_url' => 'https://github.com/ntd-file-share/ntd_abo_info/archive/master.zip',
-			'sslverify' => true,
-			'requires' => '3.0',
-			'tested' => '3.3',
-			'readme' => '/includes/README.txt',
-			'access_token' => '',
-		);
-		new WP_GitHub_Updater( $config );
-	}
+	// if ( is_admin() ) { // note the use of is_admin() to double check that this is happening in the admin
+	$config = array(
+		'slug' => plugin_basename( __FILE__ ),
+		'proper_folder_name' => dirname( plugin_basename( __FILE__ ) ),
+		'api_url' => 'https://api.github.com/repos/ntd-file-share/ntd_abo_info',
+		'raw_url' => 'https://raw.github.com/ntd-file-share/ntd_abo_info/master',
+		'github_url' => 'https://github.com/ntd-file-share/ntd_abo_info',
+		'zip_url' => 'https://github.com/ntd-file-share/ntd_abo_info/archive/master.zip',
+		'sslverify' => true,
+		'requires' => '3.0',
+		'tested' => '3.3',
+		'readme' => '/includes/README.txt',
+		'access_token' => '',
+	);
+	new WP_GitHub_Updater( $config );
+	// }
 	// // Aktuelle Updates übermitteln
 	// contact_SOAP("register_update_check");
 }
+function get_core_updates_intern( $options = array() ) {
+	$options   = array_merge(
+		array(
+			'available' => true,
+			'dismissed' => false,
+		),
+		$options
+	);
+	$dismissed = get_site_option( 'dismissed_update_core' );
 
+	if ( ! is_array( $dismissed ) ) {
+		$dismissed = array();
+	}
+
+	$from_api = get_site_transient( 'update_core' );
+
+	if ( ! isset( $from_api->updates ) || ! is_array( $from_api->updates ) ) {
+		return false;
+	}
+
+	$updates = $from_api->updates;
+	$result  = array();
+	foreach ( $updates as $update ) {
+		if ( $update->response == 'autoupdate' ) {
+			continue;
+		}
+
+		if ( array_key_exists( $update->current . '|' . $update->locale, $dismissed ) ) {
+			if ( $options['dismissed'] ) {
+				$update->dismissed = true;
+				$result[]          = $update;
+			}
+		} else {
+			if ( $options['available'] ) {
+				$update->dismissed = false;
+				$result[]          = $update;
+			}
+		}
+	}
+	return $result;
+}
 function contact_SOAP($action){
 	// require(plugin_dir_path( __FILE__ ) . 'includes/client_access.php');
 	if (isset($_POST["ntd_authentication_key"])) {
@@ -89,12 +129,35 @@ function contact_SOAP($action){
 		return $soap->check_abo_status($domain, $key);
 	} elseif ($action == "register_update_check") {
 		// available updates:
-		$update_data = wp_get_update_data();
-		$wp_update = $update_data['counts']['wordpress'];
-		$plugin_update = $update_data['counts']['plugins'];
+		// $update_data = wp_get_update_data();
+		// $wp_update = $update_data['counts']['wordpress'];
+		// $plugin_update = $update_data['counts']['plugins'];
+
 		// $wp_update = get_option("wp_update");
 		// $plugin_update = get_option("plugin_update");
 		// $letzter_check = get_option("letzter_check");
+
+		// $update_wordpress = get_core_updates( array( 'dismissed' => false ) );
+		// if ( ! empty( $update_wordpress ) && ! in_array( $update_wordpress[0]->response, array( 'development', 'latest' ) ) ) {
+		// 	$wp_update = 1;
+		// } else {
+		// 	$wp_update = 0;
+		// }
+
+		$WordPress_Core_Updates = get_core_updates_intern( array( 'dismissed' => false ) );
+		if ( ! empty( $WordPress_Core_Updates ) && ! in_array( $WordPress_Core_Updates[0]->response, array( 'development', 'latest' ) ) ) {
+			$wp_update = 1;
+		} else {
+			$wp_update = 0;
+		}
+
+		$update_plugins = get_site_transient( 'update_plugins' );
+		if ( ! empty( $update_plugins->response ) ) {
+			$plugin_update = count( $update_plugins->response );
+		} else {
+			$plugin_update = 0;
+		}
+
 		$soap->register_update_check($domain, $wp_update, $plugin_update);
 	}
 }
@@ -158,6 +221,7 @@ function display_abo_info() {
 	// echo $wp_update."<br>".$plugin_update;
 	// echo 	contact_SOAP("register_update_check");
 	// echo get_option("wp_update");
+
 	echo "<p>Hier behalten Sie Ihr ntd Service Abo im Überblick. </p>";
 	echo contact_SOAP("get_abo_info");
 	echo "<div id='ntd_address'>".$address.$logo."</div>";
