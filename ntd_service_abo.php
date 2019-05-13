@@ -13,6 +13,7 @@ register_deactivation_hook(__FILE__,'myplugin_deactivation');
 function myplugin_activation(){
 	// wp_schedule_event(time(), 'daily', 'daily_check_for_github_updates');
 	wp_schedule_event(strtotime('06:00:00'), 'daily', 'daily_check_for_github_updates');
+	perform_update_check();
 }
 /* This function is executed when the user deactivates the plugin */
 function myplugin_deactivation(){
@@ -29,9 +30,11 @@ function perform_update_check(){
 	// $update_data = wp_get_update_data();
 	// update_option('wp_update', $update_data['counts']['wordpress']);
 	// update_option('plugin_update', $update_data['counts']['plugins']);
+	// update_option('letzter_check', date('Y-m-d'));
 }
 
-add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
+// add_action( 'daily_check_for_github_updates', 'github_plugin_updater_init' );
+add_action('init', 'github_plugin_updater_init');
 function github_plugin_updater_init() {
 
 	include_once 'updater.php';
@@ -91,6 +94,7 @@ function contact_SOAP($action){
 		$plugin_update = $update_data['counts']['plugins'];
 		// $wp_update = get_option("wp_update");
 		// $plugin_update = get_option("plugin_update");
+		// $letzter_check = get_option("letzter_check");
 		$soap->register_update_check($domain, $wp_update, $plugin_update);
 	}
 }
