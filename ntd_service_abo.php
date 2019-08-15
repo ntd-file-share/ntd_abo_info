@@ -102,24 +102,7 @@ function contact_SOAP($action){
 	*/
 	if ($action=="get_abo_info") {
 		return $soap->get_abo_info($domain, $key);
-	} elseif ($action=="check_abo_status") {
-		return $soap->check_abo_status($domain, $key);
 	} elseif ($action == "register_update_check") {
-		// available updates:
-		// $update_data = wp_get_update_data();
-		// $wp_update = $update_data['counts']['wordpress'];
-		// $plugin_update = $update_data['counts']['plugins'];
-
-		// $wp_update = get_option("wp_update");
-		// $plugin_update = get_option("plugin_update");
-		// $letzter_check = get_option("letzter_check");
-
-		// $update_wordpress = get_core_updates( array( 'dismissed' => false ) );
-		// if ( ! empty( $update_wordpress ) && ! in_array( $update_wordpress[0]->response, array( 'development', 'latest' ) ) ) {
-		// 	$wp_update = 1;
-		// } else {
-		// 	$wp_update = 0;
-		// }
 
 		// check if there is a new version of wordpress
 		$WordPress_Core_Updates = get_core_updates_intern( array( 'dismissed' => false ) );
@@ -143,6 +126,17 @@ function contact_SOAP($action){
 	}
 }
 
+function formatDate($dateString){
+	$timestamp = strtotime($dateString);
+	if ($timestamp) {
+		$formattedDate = date('d. m. Y', $timestamp);
+		if ($formattedDate) {
+			return $formattedDate;
+		}
+	}
+	return '';
+}
+
 /**
 * Add a widget to the dashboard.
 *
@@ -151,7 +145,8 @@ function contact_SOAP($action){
 function add_dashboard_widgets() {
 	if( current_user_can('administrator')) {
 		wp_add_dashboard_widget(
-			contact_SOAP("check_abo_status"),         // Widget slug.
+			// contact_SOAP("check_abo_status"),         // Widget slug.
+			'ntd_abo_info',
 			'new time design Abo Info',         // Title.
 			'display_abo_info' // Display function.
 		);
@@ -163,49 +158,124 @@ add_action( 'wp_dashboard_setup', 'add_dashboard_widgets' );
 * Create the function to output the contents of the Dashboard Widget.
 */
 function display_abo_info() {
-	// ntd logo as svg code as part of the later return value
-	$address = "<div><p><span class='new_time_design'> new time design</span><br> <b>Ihre IT-, Web- und Medien-Agentur</b> <br> Hauptstrasse 94a <br> 9434 Au SG <br> <span>Tel: </span><a href='tel:071 744 81 30'>071 744 81 30 </a><br> <span>Mail: </span><a href='mailto:info@new-time.ch'>info@new-time.ch</a></p></div>";
-	$logo = '<div>
-	<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Ebene_1" x="0px" y="0px" width="200px" height="120px" viewBox="0 0 200 120" style="enable-background:new 0 0 200 120;" xml:space="preserve">
-	<style type="text/css">
-	.st0{fill:#9FA4A8;}
-	.st1{fill:#59DB00;}
-	</style>
-	<g>
-	<g>
-	<g>
-	<path class="st0" d="M0,98.6h2.4v2.4l0,0c1.2-1.6,2.8-2.8,4.8-2.8c3.6,0,4.8,2,4.8,5.2v9.6H9.6v-9.6c0-1.6-1.2-2.8-2.8-2.8     c-2.8,0-4.4,2-4.4,4.4v8H0V98.6z"/>
-	<path class="st0" d="M27.5,108.2c-0.8,3.2-2.8,4.8-6,4.8c-4.4,0-6.8-3.2-6.8-7.6s2.8-7.6,6.8-7.6c5.2,0,6.8,4.8,6.4,8.4H17.2     c0,2.4,1.2,4.8,4.4,4.8c2,0,3.2-0.8,3.6-2.8L27.5,108.2L27.5,108.2z M25.5,104.2c0-2.4-2-4-4-4c-2.4,0-4,2-4,4H25.5z"/>
-	<path class="st0" d="M44.7,113h-2.4l-2.8-11.6l0,0L36.7,113h-3.2l-4.8-14.4h2.8l3.2,11.6l0,0l2.8-11.6h2.4l3.2,11.6l0,0l3.2-11.6     h2.4L44.7,113z"/>
-	<path class="st0" d="M62.3,98.6h2.8v2h-2.8v8.8c0,1.2,0.4,1.2,1.6,1.2h1.2v2h-2c-2.4,0-3.6-0.4-3.6-3.2v-9.2h-2.4v-2h2.4v-4.4     h2.4L62.3,98.6L62.3,98.6z"/>
-	<path class="st0" d="M70.3,95.8h-2.4V93h2.4V95.8z M67.9,98.6h2.4V113h-2.4V98.6z"/>
-	<path class="st0" d="M74.3,98.6h2.4v2l0,0c1.2-1.6,2.8-2.4,4.8-2.4c1.6,0,3.2,0.8,4,2.4c0.8-1.6,2.8-2.4,4.4-2.4     c2.8,0,4.8,1.2,4.8,4v10.4h-2.8V103c0-1.6-0.4-3.2-2.8-3.2s-3.6,1.6-3.6,3.6v8.8H83v-9.6c0-2-0.4-3.2-2.8-3.2c-2.8,0-4,2.4-4,3.6     v8.8h-2.4L74.3,98.6L74.3,98.6z"/>
-	<path class="st0" d="M110.2,108.2c-0.8,3.2-2.8,4.8-6,4.8c-4.4,0-6.8-3.2-6.8-7.6s2.8-7.6,6.8-7.6c5.2,0,6.8,4.8,6.4,8.4H99.8     c0,2.4,1.2,4.8,4.4,4.8c2,0,3.2-0.8,3.6-2.8L110.2,108.2L110.2,108.2z M107.8,104.2c0-2.4-2-4-4-4c-2.4,0-4,2-4,4H107.8z"/>
-	<path class="st0" d="M133.3,113h-2.4v-2l0,0c-0.8,1.6-2.8,2.4-4.4,2.4c-4.4,0-6.8-3.6-6.8-7.6c0-4,2-7.6,6.4-7.6     c1.6,0,3.6,0.4,4.8,2.4l0,0V93h2.4V113z M126.5,111c3.2,0,4.4-2.8,4.4-5.6s-1.2-5.6-4.4-5.6s-4.4,2.8-4.4,5.6     C122.2,108.6,123.4,111,126.5,111z"/>
-	<path class="st0" d="M148.9,108.2c-0.8,3.2-2.8,4.8-6,4.8c-4.4,0-6.8-3.2-6.8-7.6s2.8-7.6,6.8-7.6c5.2,0,6.8,4.8,6.4,8.4h-10.8     c0,2.4,1.2,4.8,4.4,4.8c2,0,3.2-0.8,3.6-2.8L148.9,108.2L148.9,108.2z M146.9,104.2c0-2.4-2-4-4-4c-2.4,0-4,2-4,4H146.9z"/>
-	<path class="st0" d="M153.3,108.2c0,2,2,2.8,4,2.8c1.6,0,3.6-0.4,3.6-2c0-2-2.4-2-4.8-2.8s-4.8-1.2-4.8-4c0-2.8,2.8-4,5.2-4     c3.2,0,5.6,1.2,6,4.4h-2.4c0-2-1.6-2.4-3.2-2.4c-1.6,0-3.2,0.4-3.2,2c0,1.6,2.4,2,4.8,2.4c2.4,0.4,4.8,1.2,4.8,4     c0,3.6-3.2,4.4-6,4.4c-3.2,0-6-1.2-6-4.8H153.3z"/>
-	<path class="st0" d="M168.1,95.8h-2.4V93h2.4V95.8z M165.7,98.6h2.4V113h-2.4V98.6z"/>
-	<path class="st0" d="M184,111.8c0,4.8-2,7.2-6.8,7.2c-2.8,0-6-1.2-6-4.4h2.4c0,1.6,2,2.4,3.6,2.4c3.2,0,4.4-2.4,4.4-5.6v-0.8l0,0     c-0.8,1.6-2.8,2.8-4.4,2.8c-4.4,0-6.4-3.2-6.4-7.2c0-3.2,1.6-7.6,6.8-7.6c2,0,3.6,0.8,4.4,2.4l0,0v-2h2.4L184,111.8L184,111.8z      M182,105.4c0-2.4-1.2-5.2-4-5.2c-3.2,0-4.4,2.4-4.4,5.2c0,2.4,0.8,5.6,4,5.6C180.8,111,182,108.2,182,105.4z"/>
-	<path class="st0" d="M187.6,98.6h2.4v2.4l0,0c1.2-1.6,2.8-2.8,4.8-2.8c3.6,0,4.8,2,4.8,5.2v9.6h-2.4v-9.6c0-1.6-1.2-2.8-2.8-2.8     c-2.8,0-4.4,2-4.4,4.4v8h-2.4V98.6L187.6,98.6z"/>
-	</g>
-	</g>
-	<g>
-	<path class="st1" d="M89.4,31.9h21.2c0.8-4.4,4-9.2,10-13.2H85.4V0H71.1v13.6C79,15.2,87.4,24,89.4,31.9z"/>
-	<path class="st1" d="M185.6,0v20.8c-2.4-1.6-6-2-10-2h-33.5c-20,0-27.5,12-27.5,24.8v11.2c0,2,1.2,4.8,2.8,6.4h13.6    c-1.2-1.6-2-3.6-2-6.4V43.1c0-5.6,6-11.6,14-11.6h31.9c6.4,0,10.8,3.2,10.8,8.4v14.8c0,7.6-2.4,12.4-10.8,12.4H97    c-6,0-12-5.2-12-12.4V43.9c0-13.2-8.4-25.1-24.8-25.1H26.3C9.2,18.8,0,31.5,0,43.9v36.3h14.4V43.9c0-6.8,5.2-12,13.2-12h31.9    c6.8,0,11.6,3.6,11.6,13.6l0,0v10c0,11.2,7.2,25.1,25.9,25.1h82.2c14.8,0,20.8-12.4,20.8-25.1V0H185.6z"/>
-	</g>
-	</g>
-	</svg>
-	</div>';
-	// $update_data = wp_get_update_data();
-	// $wp_update = $update_data['counts']['wordpress'];
-	// $plugin_update = $update_data['counts']['plugins'];
-	// echo $wp_update."<br>".$plugin_update;
-	// echo 	contact_SOAP("register_update_check");
-	// echo get_option("wp_update");
 
-	echo "<p>Hier behalten Sie Ihr ntd Service Abo im Überblick. </p>";
-	echo contact_SOAP("get_abo_info");
-	echo "<div id='ntd_address'>".$address.$logo."</div>";
+	$customerInfo = json_decode(contact_SOAP("get_abo_info"));
+
+	?>
+
+	<?php if($customerInfo->error == 1): ?>
+		<h3 class="form-h3">Fast geschafft!</h3>
+		<p> Bitte authentifizieren Sie sich mit Ihrem Sicherheitsschlüssel, den Sie von uns erhalten haben. </p>
+		<p> Dieser Schritt ist nur einmalig notwendig und dient dem Schutz Ihrer Daten.</p>
+		<form method='post'>
+			<label>Bitte bestätigen Sie Ihren ntd-Authentifizierungs-Schlüssel:</label>
+			<input type='text' name='ntd_authentication_key' autofocus autocomplete='off'>
+			<button type='submit'>Bestätigen</button>
+			<p><i>Falls Sie über keinen solchen Schlüssel verfügen, können Sie uns gerne <b>kontaktieren</b>.</i></p>
+		</form>
+
+	<?php elseif ($customerInfo->error < 3): ?>
+
+		<p>Hier behalten Sie Ihr ntd Service Abo im Überblick. </p>
+
+		<div class='customer_info'>
+			<ul>
+				<li><span>Kunde:</span><?php echo $customerInfo->customer ?></li>
+				<li><span>Kunden-Nr: </span><?php echo $customerInfo->customer_nr ?></li>
+				<li><span>Service Paket: </span><?php echo $customerInfo->service ?></li>
+			</ul>
+		</div>
+
+		<?php if ($customerInfo->error == 0): ?>
+
+			<div class="bill_info">
+
+				<h3 class="openable" onclick="ntd_open(event)">Laufende Rechnung <span class="ntd_arrow"></span></h3>
+				<?php if (!empty($customerInfo->bill_outstanding) && !empty($customerInfo->bill_nr) && !empty($customerInfo->bill_date) && !empty($customerInfo->bill_amount) && !empty($customerInfo->bill_maturity)): ?>
+					<ul>
+						<li><span>Rechnungs-Nr: </span><?php echo $customerInfo->bill_nr ?></li>
+						<li><span>Rechnungsdatum: </span><?php echo formatDate($customerInfo->bill_date) ?></li>
+						<li><span>Rechnungsbetrag: </span><?php echo $customerInfo->bill_amount ?> CHF</li>
+						<li><span>Rechnung zahlbar bis: </span><?php echo formatDate($customerInfo->bill_maturity) ?></li>
+						<li><span class="ntd_notices">Bemerkungen:</span><?php echo $customerInfo->bill_message ?></li>
+					</ul>
+				<?php else: ?>
+					<i>Keine offene Rechnung</i>
+				<?php endif; ?>
+			</div>
+
+			<div class='ntd_history'>
+				<h3 class="openable" onclick='ntd_open(event)'>Letzte Arbeiten <span class='ntd_arrow'></span></h3>
+				<div>
+					<ul>
+						<?php if (!empty($customerInfo->entries)): ?>
+
+							<?php  foreach ($customerInfo->entries as $key => $value): ?>
+								<li>
+									<span>
+										<?php echo $value->date_of_entry ?>
+									</span>
+									<?php echo $value->entry ?>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					<?php else: ?>
+						<i>Noch keine Einträge</i>
+					<?php endif; ?>
+				</div>
+			</div>
+		<?php elseif($customerInfo->error == 2): ?>
+			<p>
+				<i>Sie haben kein ntd Service-Abo.</i>
+			</p>
+			<p>
+				Möchten Sie von regelmässigen <b>Updates, Backups und Sicherheitsmassnahmen</b> profitieren?
+			</p>
+			<p>
+				Dann informieren Sie sich <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">hier</a> über unser Angebot und kontaktieren Sie uns.
+			</p>
+		<?php endif; ?>
+	<?php elseif($customerInfo->error == 3): ?>
+		<p class="error">Ein Fehler ist aufgetreten - Bitte nehmen Sie Kontakt mit uns auf.</p>
+	<?php elseif($customerInfo->error > 3): ?>
+		<p>
+			<i>Sie haben kein ntd Service-Abo.</i>
+		</p>
+		<p>
+			Möchten Sie von regelmässigen <b>Updates, Backups und Sicherheitsmassnahmen</b> profitieren?
+		</p>
+		<p>
+			Dann informieren Sie sich <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">hier</a> über unser Angebot und kontaktieren Sie uns.
+		</p>
+	<?php endif; ?>
+
+	<div id='ntd_address'>
+
+		<div>
+			<p>
+				<span class='new_time_design'> new time design</span>
+				<br>
+				<b>Ihre IT-, Web- und Medien-Agentur</b>
+				<br>Hauptstrasse 94a
+				<br>9434 Au SG
+				<br>
+				<span>Tel: </span>
+				<a href='tel:071 744 81 30'>071 744 81 30 </a>
+				<br>
+				<span>Mail: </span>
+				<a href='mailto:info@new-time.ch'>info@new-time.ch</a>
+				<br>
+				<span>Web: </span>
+				<a href="https://www.new-time.ch/" target="_blank">new-time.ch</a>
+			</p>
+		</div>
+
+		<div>
+			<img id="ntd_logo" src="<?php echo plugin_dir_url( __FILE__ ) . 'includes/logo.svg' ?>" alt="Logo von new time design">
+		</div>
+
+	</div>
+	<?php
 }
 
 

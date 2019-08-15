@@ -1,4 +1,4 @@
-function ntd_open() {
+function ntd_open(event) {
   var trigger_element = event.target;
   if (trigger_element.classList) {
     trigger_element.classList.toggle("ntd_open");
