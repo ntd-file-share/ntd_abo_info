@@ -7,6 +7,7 @@ Version: 9.0
 Author URI: https://www.new-time.ch/
 GitHub Plugin URI: ntd-file-share/ntd_abo_info
 */
+
 register_activation_hook(__FILE__,'myplugin_activation');
 /* The deactivation hook is executed when the plugin is deactivated */
 register_deactivation_hook(__FILE__,'myplugin_deactivation');
@@ -128,8 +129,13 @@ function contact_SOAP($action){
 
 function formatDate($dateString){
 	$timestamp = strtotime($dateString);
+	$months = array('','Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember');
 	if ($timestamp) {
-		$formattedDate = date('d. m. Y', $timestamp);
+		// $formattedDate = date('d.m.Y', $timestamp);
+		$day = date('d.', $timestamp);
+		$month = $months[date('n', $timestamp)];
+		$year = date('Y', $timestamp);
+		$formattedDate = $day .' '. $month .' '. $year;
 		if ($formattedDate) {
 			return $formattedDate;
 		}
@@ -144,11 +150,19 @@ function formatDate($dateString){
 */
 function add_dashboard_widgets() {
 	if( current_user_can('administrator')) {
-		wp_add_dashboard_widget(
-			// contact_SOAP("check_abo_status"),         // Widget slug.
+		// wp_add_dashboard_widget(
+		//             // contact_SOAP("check_abo_status"),         // Widget slug.
+		//             'ntd_abo_info',
+		//             'new time design Abo Info',         // Title.
+		//             'display_abo_info' // Display function.
+		// );
+		add_meta_box(
 			'ntd_abo_info',
-			'new time design Abo Info',         // Title.
-			'display_abo_info' // Display function.
+			'new time design Service Abonnement',
+			'display_abo_info',
+			'dashboard',
+			'normal',
+			'high'
 		);
 	}
 }
@@ -164,116 +178,116 @@ function display_abo_info() {
 	?>
 
 	<?php if($customerInfo->error == 1): ?>
-		<h3 class="form-h3">Fast geschafft!</h3>
-		<p> Bitte authentifizieren Sie sich mit Ihrem Sicherheitsschlüssel, den Sie von uns erhalten haben. </p>
-		<p> Dieser Schritt ist nur einmalig notwendig und dient dem Schutz Ihrer Daten.</p>
-		<form method='post'>
-			<label>Bitte bestätigen Sie Ihren ntd-Authentifizierungs-Schlüssel:</label>
+
+		<div class="info-text">
+			<h3>Authentifizierung Ihres Abonnements</h3>
+			<p>Bitte geben Sie den Sicherheitsschlüssel, den Sie von uns erhalten haben, in das Eingabefeld unten ein.</p>
+		</div>
+
+		<form class="register-form flex flex-wrap" method='post'>
 			<input type='text' name='ntd_authentication_key' autofocus autocomplete='off'>
 			<button type='submit'>Bestätigen</button>
-			<p><i>Falls Sie über keinen solchen Schlüssel verfügen, können Sie uns gerne <b>kontaktieren</b>.</i></p>
 		</form>
+
+		<div class="info-box">
+			<div class="flex gap-20">
+				<p class="flex-icon-text"><i class="info">Dieser Schritt ist einmalig und dient dem Schutz Ihrer Daten. Falls Sie über keinen solchen Schlüssel verfügen, kontaktieren Sie uns bitte, damit wir diesen erneut versenden können.</i></p>
+				<span class="dashicons dashicons-admin-network flex-icon"></span>
+			</div>
+		</div>
 
 	<?php elseif ($customerInfo->error < 3): ?>
 
-		<p>Hier behalten Sie Ihr ntd Service Abo im Überblick. </p>
+		<div class="info-text">
+			<p>Hier behalten Sie Ihr Service Abonnement im Überblick.</p>
+		</div>
 
-		<div class='customer_info'>
+		<div class='info-box info-customer'>
 			<ul>
-				<li><span>Kunde:</span><?php echo $customerInfo->customer ?></li>
-				<li><span>Kunden-Nr: </span><?php echo $customerInfo->customer_nr ?></li>
-				<li><span>Service Paket: </span><?php echo $customerInfo->service ?></li>
+				<li><span class="info-separator separator-large"><b>Domain / Kunde: </b></span><?php echo $customerInfo->customer ?></li>
+				<?php if ( $customerInfo->customer_nr != '' ): ?>
+					<li><span class="info-separator separator-large"><b>Kundennummer: </b></span><?php echo $customerInfo->customer_nr ?></li>
+				<?php endif; ?>
+				<li><span class="info-separator separator-large"><b>Servicepaket: </b></span><?php echo $customerInfo->service ?></li>
 			</ul>
 		</div>
 
 		<?php if ($customerInfo->error == 0): ?>
 
-			<div class="bill_info">
+			<div class="info-box info-bill">
+				<h3 class="openable" onclick="ntd_open(event)">Laufende Rechnung <span class="ntd-arrow"></span></h3>
 
-				<h3 class="openable" onclick="ntd_open(event)">Laufende Rechnung <span class="ntd_arrow"></span></h3>
 				<?php if (!empty($customerInfo->bill_outstanding) && !empty($customerInfo->bill_nr) && !empty($customerInfo->bill_date) && !empty($customerInfo->bill_amount) && !empty($customerInfo->bill_maturity)): ?>
 					<ul>
-						<li><span>Rechnungs-Nr: </span><?php echo $customerInfo->bill_nr ?></li>
-						<li><span>Rechnungsdatum: </span><?php echo formatDate($customerInfo->bill_date) ?></li>
-						<li><span>Rechnungsbetrag: </span><?php echo $customerInfo->bill_amount ?> CHF</li>
-						<li><span>Rechnung zahlbar bis: </span><?php echo formatDate($customerInfo->bill_maturity) ?></li>
-						<li><span class="ntd_notices">Bemerkungen:</span><?php echo $customerInfo->bill_message ?></li>
+						<li><span class="info-separator separator-large"><b>Rechnungs-Nr: </b></span><?php echo $customerInfo->bill_nr ?></li>
+						<li><span class="info-separator separator-large"><b>Rechnungsdatum: </b></span><?php echo formatDate($customerInfo->bill_date) ?></li>
+						<li><span class="info-separator separator-large"><b>Zahlbar bis: </b></span><?php echo formatDate($customerInfo->bill_maturity) ?></li>
+						<li><span class="info-separator separator-large"><b>Rechnungsbetrag: </b></span>CHF <?php echo $customerInfo->bill_amount ?></li>
+						<?php if ($customerInfo->bill_message != ''): ?>
+							<li><span class="info-separator separator-large"><b>Bemerkungen: </b></span><?php echo $customerInfo->bill_message ?></li>
+						<?php endif; ?>
 					</ul>
 				<?php else: ?>
-					<i>Keine offene Rechnung</i>
+					<p><i class="info">Keine offene Rechnung</i></p>
 				<?php endif; ?>
 			</div>
 
-			<div class='ntd_history'>
-				<h3 class="openable" onclick='ntd_open(event)'>Letzte Arbeiten <span class='ntd_arrow'></span></h3>
-				<div>
-					<ul>
-						<?php if (!empty($customerInfo->entries)): ?>
 
+			<?php if (!empty($customerInfo->entries)): ?>
+				<div class='info-box info-history'>
+					<h3 class="openable" onclick='ntd_open(event)'>Letzte Arbeiten <span class='ntd-arrow'></span></h3>
+						<ul>
 							<?php  foreach ($customerInfo->entries as $key => $value): ?>
 								<li>
-									<span>
-										<?php echo $value->date_of_entry ?>
-									</span>
-									<?php echo $value->entry ?>
+									<span class="info-separator separator-large"><b><?php echo formatDate($value->date_of_entry); ?> </b></span><?php echo $value->entry ?>
 								</li>
 							<?php endforeach; ?>
 						</ul>
-					<?php else: ?>
-						<i>Noch keine Einträge</i>
-					<?php endif; ?>
 				</div>
+			<?php endif; ?>
+
+		<?php elseif($customerInfo->error == 2): // -> kunde aber kein abo ?>
+			<div class="info-text">
+				<p><i class="error">Sie haben kein Service Abonnement.</i></p>
+				<p>Möchten Sie von regelmässigen Updates der Sicherheitsmassnahmen und Backups Ihres Systems profitieren? Dann <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">informieren Sie sich hier</a> über unser Angebot und kontaktieren Sie uns.</p>
 			</div>
-		<?php elseif($customerInfo->error == 2): ?>
-			<p>
-				<i>Sie haben kein ntd Service-Abo.</i>
-			</p>
-			<p>
-				Möchten Sie von regelmässigen <b>Updates, Backups und Sicherheitsmassnahmen</b> profitieren?
-			</p>
-			<p>
-				Dann informieren Sie sich <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">hier</a> über unser Angebot und kontaktieren Sie uns.
-			</p>
 		<?php endif; ?>
-	<?php elseif($customerInfo->error == 3): ?>
-		<p class="error">Ein Fehler ist aufgetreten - Bitte nehmen Sie Kontakt mit uns auf.</p>
-	<?php elseif($customerInfo->error > 3): ?>
-		<p>
-			<i>Sie haben kein ntd Service-Abo.</i>
-		</p>
-		<p>
-			Möchten Sie von regelmässigen <b>Updates, Backups und Sicherheitsmassnahmen</b> profitieren?
-		</p>
-		<p>
-			Dann informieren Sie sich <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">hier</a> über unser Angebot und kontaktieren Sie uns.
-		</p>
+
+	<?php elseif($customerInfo->error == 3): // -> fehler ?>
+		<div class="info-text">
+			<p><i class="error">Ein Fehler ist aufgetreten - Bitte nehmen Sie Kontakt mit uns auf.</i></p>
+		</div>
+
+	<?php elseif($customerInfo->error > 3): // -> kein kunde ?>
+		<div class="info-text">
+			<p><i class="error">Sie haben kein Service Abonnement.</i></p>
+			<p>Möchten Sie von regelmässigen Updates der Sicherheitsmassnahmen und Backups Ihres Systems profitieren? Dann <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">informieren Sie sich hier</a> über unser Angebot und kontaktieren Sie uns.</p>
+		</div>
 	<?php endif; ?>
 
-	<div id='ntd_address'>
+	<div class="info-box info-branding">
+		<div class="flex gap-20">
 
-		<div>
-			<p>
-				<span class='new_time_design'> new time design</span>
-				<br>
-				<b>Ihre IT-, Web- und Medien-Agentur</b>
-				<br>Hauptstrasse 94a
-				<br>9434 Au SG
-				<br>
-				<span>Tel: </span>
-				<a href='tel:071 744 81 30'>071 744 81 30 </a>
-				<br>
-				<span>Mail: </span>
-				<a href='mailto:info@new-time.ch'>info@new-time.ch</a>
-				<br>
-				<span>Web: </span>
-				<a href="https://www.new-time.ch/" target="_blank">new-time.ch</a>
-			</p>
+			<div class="branding-adress">
+				<p class="adress-block">
+					<b>new time design</b><br>
+					Hauptstrasse 94a<br>
+					9434 Au SG
+				</p>
+				<p class="adress-contactdata">
+					<span class="info-separator">Telefon: </span><a href='tel:071 744 81 30'>071 744 81 30 </a><br>
+					<span class="info-separator">E-Mail: </span><a href='mailto:info@new-time.ch'>info@new-time.ch</a><br>
+					<span class="info-separator">Website: </span><a href="https://www.new-time.ch/" target="_blank">new-time.ch</a>
+				</p>
+			</div>
+
+			<div class="branding-logo">
+				<a href="https://new-time.ch" title="zur Website" target="_blank">
+					<img id="ntd_logo" src="<?php echo plugin_dir_url( __FILE__ ) . 'includes/logo.svg' ?>" alt="Logo von new time design">
+				</a>
+			</div>
+
 		</div>
-
-		<div>
-			<img id="ntd_logo" src="<?php echo plugin_dir_url( __FILE__ ) . 'includes/logo.svg' ?>" alt="Logo von new time design">
-		</div>
-
 	</div>
 	<?php
 }

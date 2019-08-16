@@ -1,0 +1,253 @@
+/*/////////////////*/
+/* flexbox classes */
+/*/////////////////*/
+
+.flex {
+  display: -webkit-box;
+  display: flex;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.gap-20 {
+  width: calc(100% + 20px);
+  margin-left: -10px;
+  margin-right: -10px;
+}
+.gap-20 > * {
+  -webkit-box-flex: 1;
+  flex: 1 1 50%;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.flex-icon {
+  -webkit-box-flex: 0;
+  flex: 0 1 auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: auto;
+  height: auto;
+  font-size: 3.375em;
+  color: #dedede;
+}
+.flex-icon-text {
+  -webkit-box-flex: 1;
+  flex: 1 1 auto;
+  margin-bottom: 0;
+}
+
+/*//////////////*/
+/* global stuff */
+/*//////////////*/
+
+/* colors & wrapper spacing */
+
+#ntd_abo_info h2,
+#ntd_abo_info h3,
+#ntd_abo_info b {
+  font-weight: 600;
+  color: #333333;
+}
+#ntd_abo_info {
+  color: #787673;
+}
+#ntd_abo_info p {
+  margin-top: 0;
+}
+
+#ntd_abo_info p a {
+  color: #f98000;
+}
+#ntd_abo_info p a:hover,
+#ntd_abo_info p a:focus {
+  color: #999;
+  outline: none;
+  box-shadow: none;
+}
+
+#ntd_abo_info ul li,
+#ntd_abo_info ol li {
+  margin-bottom: 0;
+}
+
+#ntd_abo_info .inside {
+  margin-top: 18px;
+  padding: 0 20px;
+}
+
+#ntd_abo_info .info {
+  color: #787673;
+}
+#ntd_abo_info .error {
+  color: #f44336;
+}
+#ntd_abo_info .success {
+  color: #359a39;
+}
+
+/*///////////*/
+/* info text */
+/*///////////*/
+
+#ntd_abo_info .info-text {
+  margin-bottom: 18px;
+}
+#ntd_abo_info .info-text > :last-child {
+  margin-bottom: 0;
+}
+
+#ntd_abo_info .info-text.info-text-small p {
+  font-size: 12px;
+}
+
+/*////////////*/
+/* info boxes */
+/*////////////*/
+
+#ntd_abo_info .info-box {
+  margin: 0 -20px;
+  padding: 18px 20px;
+  border-top: 1px solid #eee;
+  background-color: #fff;
+}
+#ntd_abo_info .info-box > :first-child {
+  margin-top: 0;
+}
+#ntd_abo_info .info-box > :last-child {
+  margin-bottom: 0;
+}
+
+#ntd_abo_info .info-separator {
+  display: inline-block;
+  min-width: 5em;
+}
+#ntd_abo_info .info-separator.separator-large {
+  min-width: 10em;
+}
+
+/* dropdown arrows */
+
+#ntd_abo_info .ntd-arrow {
+  display: inline-block;
+  width: .75em;
+  height: .75em;
+  box-shadow: inset -3px -3px 0 0 #ddd;
+  transform: rotate(45deg) translate(-0.25em, 0);
+  transform-origin: center;
+  transition: transform .1s;
+  pointer-events: none;
+}
+#ntd_abo_info .ntd-open .ntd-arrow {
+  transform: rotate(-135deg) translate(-0.125em, -0.25em);
+}
+
+#ntd_abo_info .openable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+  cursor: pointer;
+  transition: color .1s ease;
+}
+#ntd_abo_info .openable:hover,
+#ntd_abo_info .openable:focus {
+  color: #787673;
+}
+
+
+#ntd_abo_info .openable:not(.ntd-open) + * {
+  display: none;
+}
+#ntd_abo_info .ntd-open + * {
+  display: block;
+  margin-top: 1em;
+}
+
+/*////////////////*/
+/* postbox header */
+/*////////////////*/
+
+#ntd_abo_info .ui-sortable-handle {
+  color: #fff;
+  background-color: #1e1c1a;
+}
+#ntd_abo_info .toggle-indicator {
+  color: #4fc200;
+}
+
+/*///////////////////////*/
+/* authentification form */
+/*///////////////////////*/
+
+#ntd_abo_info .register-form {
+  margin-bottom: 18px;
+}
+#ntd_abo_info .register-form input,
+#ntd_abo_info .register-form button {
+  flex: 0 0 auto;
+  display: block;
+  padding: .5em .75em;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: none !important;
+  border-radius: 3px;
+  outline: none !important;
+}
+#ntd_abo_info .register-form input {
+  flex-grow: 1;
+  margin-right: .5em;
+  color: #787673;
+  transition: color .1s ease, border .1s ease;
+}
+#ntd_abo_info .register-form input:focus {
+  border-color: #f98000;
+}
+#ntd_abo_info .register-form button {
+  letter-spacing: 0.03125em;
+  color: #fff;
+  background: #f98000;
+  border: 1px solid transparent;
+  transition: background .1s ease;
+  cursor: pointer;
+}
+#ntd_abo_info .register-form button:hover,
+#ntd_abo_info .register-form button:focus {
+  background: #fa9500;
+}
+
+/*/////////////////////*/
+/* new-time adress box */
+/*/////////////////////*/
+
+#ntd_abo_info .info-branding {
+  background-color: #1e1c1a;
+  border-top: 0;
+}
+#ntd_abo_info .info-branding b {
+  color: #fa9500;
+}
+#ntd_abo_info .info-branding .adress-block {
+  color: #999;
+}
+#ntd_abo_info .info-branding .branding-logo {
+  width: auto;
+  max-width: 90px;
+  margin-top: 5px;
+}
+#ntd_abo_info .info-branding .branding-logo img {
+  max-width: 100%;
+  height: auto;
+}
+#ntd_abo_info .info-branding .branding-adress p:last-child {
+  margin-bottom: 0;
+}
+
+#ntd_abo_info .info-branding a,
+#ntd_abo_info .info-branding .info-separator {
+  color: #787673;
+}
