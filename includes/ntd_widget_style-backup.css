@@ -51,10 +51,10 @@ background: #59db00; */
   position: relative;
 }
 
-#ntd_abo_info h3.openable:not(.ntd_open) + * {
+#ntd_abo_info h3.openable:not(.ntd-open) + * {
   display: none;
 }
-#ntd_abo_info h3.ntd_open + * {
+#ntd_abo_info h3.ntd-open + * {
   display: block;
 }
 
@@ -63,7 +63,7 @@ background: #59db00; */
   font-size: 1.2em;
 }
 
-#ntd_abo_info h3 span.ntd_arrow {
+#ntd_abo_info h3 span.ntd-arrow {
   position: absolute;
   right: 0;
   top: 0;
@@ -80,7 +80,7 @@ background: #59db00; */
   pointer-events: none;
 }
 
-#ntd_abo_info h3.ntd_open span.ntd_arrow {
+#ntd_abo_info h3.ntd-open span.ntd-arrow {
   transform: rotate(-135deg) translate(-4px, -4px);
   transition: transform .3s;
 }
