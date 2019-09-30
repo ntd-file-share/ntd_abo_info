@@ -3,7 +3,7 @@
 Plugin Name: ntd Service Abo
 Description: Wir halten Sie auf dem Laufenden: Welches Service Abo habe ich? Bis wann muss die Rechung beglichen werden?
 Author: New Time Design
-Version: 9.1
+Version: 9.2
 Author URI: https://www.new-time.ch/
 GitHub Plugin URI: ntd-file-share/ntd_abo_info
 */
@@ -35,6 +35,15 @@ function perform_update_check(){
 	// update_option('letzter_check', date('Y-m-d'));
 }
 
+set_error_handler('handleSoapClientErrors_ntd');
+function handleSoapClientErrors_ntd($errno, $errmsg, $filename, $linenum, $vars) {
+	if (stristr($errmsg, "SoapClient::SoapClient")) {
+		error_log($errmsg); // silently log error
+		return true; // skip error handling
+	} else {
+		return false;
+	}
+}
 
 function get_core_updates_intern( $options = array() ) {
 	$options   = array_merge(
@@ -77,7 +86,7 @@ function get_core_updates_intern( $options = array() ) {
 	}
 	return $result;
 }
-function contact_SOAP($action){
+function contact_SOAP($action) {
 	// require(plugin_dir_path( __FILE__ ) . 'includes/client_access.php');
 	if (isset($_POST["ntd_authentication_key"])) {
 		update_option('ntd_authentication_key', $_POST["ntd_authentication_key"]);
@@ -91,39 +100,46 @@ function contact_SOAP($action){
 	/**
 	* SOAP Service aufrufen.
 	*/
+	ini_set('default_socket_timeout', 2);
 	$soap = new SoapClient(null, array(
 		"location" => "http://ntd-testumgebung.ch/ntd_abo_info/ntd_abo_soap_service.php",
 		"uri" => "http://ntd-testumgebung.ch/ntd_abo_info",
 		'encoding' => 'UTF-8', // Zeichensatz
-		'soap_version' => SOAP_1_2
+		'soap_version' => SOAP_1_2,
+		'connection_timeout' => 2,
+		'exceptions' => true
 	));
 
 	/**
 	* Richtiger Soapservice aufrufen.
 	*/
-	if ($action=="get_abo_info") {
-		return $soap->get_abo_info($domain, $key);
-	} elseif ($action == "register_update_check") {
+	try {
+		if ($action=="get_abo_info") {
+			return $soap->get_abo_info($domain, $key);
+		} elseif ($action == "register_update_check") {
 
-		// check if there is a new version of wordpress
-		$WordPress_Core_Updates = get_core_updates_intern( array( 'dismissed' => false ) );
-		if ( ! empty( $WordPress_Core_Updates ) && ! in_array( $WordPress_Core_Updates[0]->response, array( 'development', 'latest' ) ) ) {
-			$wp_update = 1;
-		} else {
-			$wp_update = 0;
-		}
-		// get number of available plugin updates
-		$update_plugins = get_site_transient( 'update_plugins' );
-		if ( ! empty( $update_plugins->response ) ) {
-			$plugin_update = count( $update_plugins->response );
-		} else {
-			$plugin_update = 0;
-		}
-		// get current version of this plugin
-		$file_info = get_file_data(plugin_dir_path( __FILE__ )."ntd_service_abo.php", array('Version'), '');
+			// check if there is a new version of wordpress
+			$WordPress_Core_Updates = get_core_updates_intern( array( 'dismissed' => false ) );
+			if ( ! empty( $WordPress_Core_Updates ) && ! in_array( $WordPress_Core_Updates[0]->response, array( 'development', 'latest' ) ) ) {
+				$wp_update = 1;
+			} else {
+				$wp_update = 0;
+			}
+			// get number of available plugin updates
+			$update_plugins = get_site_transient( 'update_plugins' );
+			if ( ! empty( $update_plugins->response ) ) {
+				$plugin_update = count( $update_plugins->response );
+			} else {
+				$plugin_update = 0;
+			}
+			// get current version of this plugin
+			$file_info = get_file_data(plugin_dir_path( __FILE__ )."ntd_service_abo.php", array('Version'), '');
 
-		// send information of current situation for updating the database
-		$soap->register_update_check($domain, $wp_update, $plugin_update, $file_info[0]);
+			// send information of current situation for updating the database
+			$soap->register_update_check($domain, $wp_update, $plugin_update, $file_info[0]);
+		}
+	} catch(SOAPFault $e) {
+		return false;
 	}
 }
 
@@ -173,69 +189,71 @@ add_action( 'wp_dashboard_setup', 'add_dashboard_widgets' );
 */
 function display_abo_info() {
 
-	$customerInfo = json_decode(contact_SOAP("get_abo_info"));
+	$customerInfo_ANSWER = contact_SOAP("get_abo_info");
+	if ($customerInfo_ANSWER) {
 
-	?>
+		$customerInfo = json_decode($customerInfo_ANSWER);
 
-	<?php if($customerInfo->error == 1): ?>
+		?>
+		<?php if($customerInfo->error == 1): ?>
 
-		<div class="info-text">
-			<h3>Authentifizierung Ihres Abonnements</h3>
-			<p>Bitte geben Sie den Sicherheitsschlüssel, den Sie von uns erhalten haben, in das Eingabefeld unten ein.</p>
-		</div>
-
-		<form class="register-form flex flex-wrap" method='post'>
-			<input type='text' name='ntd_authentication_key' autofocus autocomplete='off'>
-			<button type='submit'>Bestätigen</button>
-		</form>
-
-		<div class="info-box">
-			<div class="flex gap-20">
-				<p class="flex-icon-text"><i class="info">Dieser Schritt ist einmalig und dient dem Schutz Ihrer Daten. Falls Sie über keinen solchen Schlüssel verfügen, kontaktieren Sie uns bitte, damit wir diesen erneut versenden können.</i></p>
-				<span class="dashicons dashicons-admin-network flex-icon"></span>
-			</div>
-		</div>
-
-	<?php elseif ($customerInfo->error < 3): ?>
-
-		<div class="info-text">
-			<p>Hier behalten Sie Ihr Service Abonnement im Überblick.</p>
-		</div>
-
-		<div class='info-box info-customer'>
-			<ul>
-				<li><span class="info-separator separator-large"><b>Domain / Kunde: </b></span><?php echo $customerInfo->customer ?></li>
-				<?php if ( $customerInfo->customer_nr != '' ): ?>
-					<li><span class="info-separator separator-large"><b>Kundennummer: </b></span><?php echo $customerInfo->customer_nr ?></li>
-				<?php endif; ?>
-				<li><span class="info-separator separator-large"><b>Servicepaket: </b></span><?php echo $customerInfo->service ?></li>
-			</ul>
-		</div>
-
-		<?php if ($customerInfo->error == 0): ?>
-
-			<div class="info-box info-bill">
-				<h3 class="openable" onclick="ntd_open(event)">Laufende Rechnung <span class="ntd-arrow"></span></h3>
-
-				<?php if (!empty($customerInfo->bill_outstanding) && !empty($customerInfo->bill_nr) && !empty($customerInfo->bill_date) && !empty($customerInfo->bill_amount) && !empty($customerInfo->bill_maturity)): ?>
-					<ul>
-						<li><span class="info-separator separator-large"><b>Rechnungs-Nr: </b></span><?php echo $customerInfo->bill_nr ?></li>
-						<li><span class="info-separator separator-large"><b>Rechnungsdatum: </b></span><?php echo formatDate($customerInfo->bill_date) ?></li>
-						<li><span class="info-separator separator-large"><b>Zahlbar bis: </b></span><?php echo formatDate($customerInfo->bill_maturity) ?></li>
-						<li><span class="info-separator separator-large"><b>Rechnungsbetrag: </b></span>CHF <?php echo $customerInfo->bill_amount ?></li>
-						<?php if ($customerInfo->bill_message != ''): ?>
-							<li><span class="info-separator separator-large"><b>Bemerkungen: </b></span><?php echo $customerInfo->bill_message ?></li>
-						<?php endif; ?>
-					</ul>
-				<?php else: ?>
-					<p><i class="info">Keine offene Rechnung</i></p>
-				<?php endif; ?>
+			<div class="info-text">
+				<h3>Authentifizierung Ihres Abonnements</h3>
+				<p>Bitte geben Sie den Sicherheitsschlüssel, den Sie von uns erhalten haben, in das Eingabefeld unten ein.</p>
 			</div>
 
+			<form class="register-form flex flex-wrap" method='post'>
+				<input type='text' name='ntd_authentication_key' autofocus autocomplete='off'>
+				<button type='submit'>Bestätigen</button>
+			</form>
 
-			<?php if (!empty($customerInfo->entries)): ?>
-				<div class='info-box info-history'>
-					<h3 class="openable" onclick='ntd_open(event)'>Letzte Arbeiten <span class='ntd-arrow'></span></h3>
+			<div class="info-box">
+				<div class="flex gap-20">
+					<p class="flex-icon-text"><i class="info">Dieser Schritt ist einmalig und dient dem Schutz Ihrer Daten. Falls Sie über keinen solchen Schlüssel verfügen, kontaktieren Sie uns bitte, damit wir diesen erneut versenden können.</i></p>
+					<span class="dashicons dashicons-admin-network flex-icon"></span>
+				</div>
+			</div>
+
+		<?php elseif ($customerInfo->error < 3): ?>
+
+			<div class="info-text">
+				<p>Hier behalten Sie Ihr Service Abonnement im Überblick.</p>
+			</div>
+
+			<div class='info-box info-customer'>
+				<ul>
+					<li><span class="info-separator separator-large"><b>Domain / Kunde: </b></span><?php echo $customerInfo->customer ?></li>
+					<?php if ( $customerInfo->customer_nr != '' ): ?>
+						<li><span class="info-separator separator-large"><b>Kundennummer: </b></span><?php echo $customerInfo->customer_nr ?></li>
+					<?php endif; ?>
+					<li><span class="info-separator separator-large"><b>Servicepaket: </b></span><?php echo $customerInfo->service ?></li>
+				</ul>
+			</div>
+
+			<?php if ($customerInfo->error == 0): ?>
+
+				<div class="info-box info-bill">
+					<h3 class="openable" onclick="ntd_open(event)">Laufende Rechnung <span class="ntd-arrow"></span></h3>
+
+					<?php if (!empty($customerInfo->bill_outstanding) && !empty($customerInfo->bill_nr) && !empty($customerInfo->bill_date) && !empty($customerInfo->bill_amount) && !empty($customerInfo->bill_maturity)): ?>
+						<ul>
+							<li><span class="info-separator separator-large"><b>Rechnungs-Nr: </b></span><?php echo $customerInfo->bill_nr ?></li>
+							<li><span class="info-separator separator-large"><b>Rechnungsdatum: </b></span><?php echo formatDate($customerInfo->bill_date) ?></li>
+							<li><span class="info-separator separator-large"><b>Zahlbar bis: </b></span><?php echo formatDate($customerInfo->bill_maturity) ?></li>
+							<li><span class="info-separator separator-large"><b>Rechnungsbetrag: </b></span>CHF <?php echo $customerInfo->bill_amount ?></li>
+							<?php if ($customerInfo->bill_message != ''): ?>
+								<li><span class="info-separator separator-large"><b>Bemerkungen: </b></span><?php echo $customerInfo->bill_message ?></li>
+							<?php endif; ?>
+						</ul>
+					<?php else: ?>
+						<p><i class="info">Keine offene Rechnung</i></p>
+					<?php endif; ?>
+				</div>
+
+
+				<?php if (!empty($customerInfo->entries)): ?>
+					<div class='info-box info-history'>
+						<h3 class="openable" onclick='ntd_open(event)'>Letzte Arbeiten <span class='ntd-arrow'></span></h3>
 						<ul>
 							<?php  foreach ($customerInfo->entries as $key => $value): ?>
 								<li>
@@ -243,27 +261,35 @@ function display_abo_info() {
 								</li>
 							<?php endforeach; ?>
 						</ul>
+					</div>
+				<?php endif; ?>
+
+			<?php elseif($customerInfo->error == 2): // -> kunde aber kein abo ?>
+				<div class="info-text">
+					<p><i class="error">Sie haben kein Service Abonnement.</i></p>
+					<p>Möchten Sie von regelmässigen Updates der Sicherheitsmassnahmen und Backups Ihres Systems profitieren? Dann <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">informieren Sie sich hier</a> über unser Angebot und kontaktieren Sie uns.</p>
 				</div>
 			<?php endif; ?>
 
-		<?php elseif($customerInfo->error == 2): // -> kunde aber kein abo ?>
+		<?php elseif($customerInfo->error == 3): // -> fehler ?>
+			<div class="info-text">
+				<p><i class="error">Ein Fehler ist aufgetreten - Bitte nehmen Sie Kontakt mit uns auf.</i></p>
+			</div>
+
+		<?php elseif($customerInfo->error > 3): // -> kein kunde ?>
 			<div class="info-text">
 				<p><i class="error">Sie haben kein Service Abonnement.</i></p>
 				<p>Möchten Sie von regelmässigen Updates der Sicherheitsmassnahmen und Backups Ihres Systems profitieren? Dann <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">informieren Sie sich hier</a> über unser Angebot und kontaktieren Sie uns.</p>
 			</div>
 		<?php endif; ?>
-
-	<?php elseif($customerInfo->error == 3): // -> fehler ?>
+	<?php } else {
+		?>
 		<div class="info-text">
-			<p><i class="error">Ein Fehler ist aufgetreten - Bitte nehmen Sie Kontakt mit uns auf.</i></p>
+			<p><i class="error">Unser Server wird zurzeit gewartet.</i></p>
+			<p>Informationen zu Ihrem Service Abo stehen in Kürze wieder zur Verfügung.</p>
 		</div>
-
-	<?php elseif($customerInfo->error > 3): // -> kein kunde ?>
-		<div class="info-text">
-			<p><i class="error">Sie haben kein Service Abonnement.</i></p>
-			<p>Möchten Sie von regelmässigen Updates der Sicherheitsmassnahmen und Backups Ihres Systems profitieren? Dann <a href="https://www.new-time.ch/webdesign/webdesign-pakete-und-preise/" target="_blank">informieren Sie sich hier</a> über unser Angebot und kontaktieren Sie uns.</p>
-		</div>
-	<?php endif; ?>
+		<?php
+	} ?>
 
 	<div class="info-box info-branding">
 		<div class="flex gap-20">
