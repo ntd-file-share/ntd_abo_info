@@ -3,7 +3,7 @@
 Plugin Name: ntd Service Abo
 Description: Wir halten Sie auf dem Laufenden: Welches Service Abo habe ich? Bis wann muss die Rechung beglichen werden?
 Author: New Time Design
-Version: 9.2
+Version: 9.3
 Author URI: https://www.new-time.ch/
 GitHub Plugin URI: ntd-file-share/ntd_abo_info
 */
@@ -100,13 +100,13 @@ function contact_SOAP($action) {
 	/**
 	* SOAP Service aufrufen.
 	*/
-	ini_set('default_socket_timeout', 2);
+	ini_set('default_socket_timeout', 5);
 	$soap = new SoapClient(null, array(
 		"location" => "http://ntd-testumgebung.ch/ntd_abo_info/ntd_abo_soap_service.php",
 		"uri" => "http://ntd-testumgebung.ch/ntd_abo_info",
 		'encoding' => 'UTF-8', // Zeichensatz
 		'soap_version' => SOAP_1_2,
-		'connection_timeout' => 2,
+		'connection_timeout' => 5,
 		'exceptions' => true
 	));
 
@@ -139,6 +139,9 @@ function contact_SOAP($action) {
 			$soap->register_update_check($domain, $wp_update, $plugin_update, $file_info[0]);
 		}
 	} catch(SOAPFault $e) {
+		if ($action == "register_update_check") {
+			wp_schedule_single_event( time() + 3600, 'daily_update_information' );
+		}
 		return false;
 	}
 }
